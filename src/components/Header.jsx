@@ -1,18 +1,20 @@
 import { Link, NavLink } from "react-router-dom";
+import { useCartStore } from "../store/cartStore";
 
 export default function Header() {
-  return (
-    <header style={{ padding: "12px 16px", borderBottom: "1px solid #ddd" }}>
-      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        <Link to="/" style={{ fontWeight: 700, textDecoration: "none" }}>
-          Ecom Electronics
-        </Link>
+  const items = useCartStore((s) => s.items);
+  const totalQty = items.reduce((sum, i) => sum + i.qty, 0);
 
-        <nav style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
-          <NavLink to="/products">Products</NavLink>
-          <NavLink to="/cart">Cart</NavLink>
-        </nav>
-      </div>
+  return (
+    <header style={{ padding: 12, borderBottom: "1px solid #ddd" }}>
+      <Link to="/"> Ecom Electronics</Link>
+
+      <nav style={{ float: "right" }}>
+        <NavLink to="/products">Products</NavLink>{" "}
+        <NavLink to="/cart">
+          Cart ({totalQty})
+        </NavLink>
+      </nav>
     </header>
   );
 }
