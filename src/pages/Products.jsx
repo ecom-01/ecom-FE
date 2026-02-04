@@ -1,20 +1,24 @@
-import { useMemo, useState } from "react";
-import { products } from "../data/products";
+import { useEffect, useMemo, useState } from "react";
 import ProductCard from "../components/ProductCard";
+import { productsApi } from "../api/products";
 
 export default function Products() {
+  const [all, setAll] = useState([]);
   const [query, setQuery] = useState("");
-  const [type, setType] = useState("all"); // all | ram | ssd
+  const [type, setType] = useState("all");
+
+  useEffect(() => {
+    productsApi.list().then(setAll);
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-
-    return products.filter((p) => {
+    return all.filter((p) => {
       const matchType = type === "all" ? true : p.type === type;
       const matchQuery = q === "" ? true : p.name.toLowerCase().includes(q);
       return matchType && matchQuery;
     });
-  }, [query, type]);
+  }, [all, query, type]);
 
   return (
     <>
