@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useCartStore } from "../store/cartStore";
 import { formatPrice } from "../utils/formatPrice";
 import { generateOrderId } from "../utils/order";
-import { saveOrder } from "../store/orderStorage";
+import { ordersApi } from "../api/orders";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -36,42 +36,48 @@ export default function Checkout() {
     setForm((f) => ({ ...f, [key]: e.target.value }));
   };
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    setError("");
+  const onSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
 
-    setIsPlacingOrder(true);
+  if (!form.name.trim()) return setError("Please enter your name.");
+  if (!form.phone.trim()) return setError("Please enter your phone.");
+  if (!form.address.trim()) return setError("Please enter your address.");
 
-    if (!form.name.trim()) return setError("Please enter your name.");
-    if (!form.phone.trim()) return setError("Please enter your phone.");
-    if (!form.address.trim()) return setError("Please enter your address.");
+  setIsPlacingOrder(true);
 
-    const order = {
-      id: generateOrderId(),
-      createdAt: new Date().toISOString(),
-      customer: {
-        name: form.name.trim(),
-        phone: form.phone.trim(),
-        address: form.address.trim(),
-        note: form.note.trim(),
-      },
-      items: items.map((i) => ({
-        id: i.id,
-        slug: i.slug,
-        name: i.name,
-        price: i.price,
-        qty: i.qty,
-      })),
-      subtotal,
-      shippingFee,
-      total,
-      status: "created",
-    };
-    saveOrder(order);
+  const order = {
+    id: generateOrderId(),
+    createdAt: new Date().toISOString(),
+    customer: {
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      address: form.address.trim(),
+      note: form.note.trim(),
+    },
+    items: items.map((i) => ({
+      id: i.id,
+      slug: i.slug,
+      name: i.name,
+      price: i.price,
+      qty: i.qty,
+    })),
+    subtotal,
+    shippingFee,
+    total,
+    status: "created",
+  };
 
+  try {
+    await ordersApi.create(order);
     clearCart();
     navigate("/order-success");
-  };
+  } catch (err) {
+    // nếu create fail thì cho user thử lại
+    setIsPlacingOrder(false);
+    setError("Place order failed. Please try again.");
+  }
+};
 
   return (
     <>
